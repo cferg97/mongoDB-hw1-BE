@@ -12,10 +12,17 @@ const postSchema = new Schema(
       unit: { type: String, required: true },
     },
     author: {
-        "name": {type: String, required: false},
-        "avatar": {type: String, required: false}
+      name: { type: String, required: false },
+      avatar: { type: String, required: false },
     },
     content: { type: String, required: true },
+    comments: [
+      {
+        comment: String,
+        addedOn: Date,
+        updatedOn: Date,
+      },
+    ],
   },
   { timestamps: true }
 );

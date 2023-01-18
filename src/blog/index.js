@@ -13,11 +13,81 @@ postsRouter.get("/", async (req, res, next) => {
   }
 });
 
+postsRouter.get("/:postid/comments", async (req, res, next) => {
+  try {
+    const post = await postsModel.findById(req.params.postid);
+    if (post) {
+      res.send(post.comments);
+    } else {
+      next(createHttpError(404, `Post with id ${req.params.id} not found.`));
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+postsRouter.get("/:postid/comments/:commentid", async (req, res, next) => {
+  try {
+    const post = await postsModel.findById(req.params.postid);
+    if (post) {
+      const postComment = post.comments.find(
+        (comment) => comment._id.toString() === req.params.commentid
+      );
+
+      if (postComment) {
+        res.send(postComment);
+      } else {
+        next(
+          createHttpError(
+            404,
+            `Comment with id ${req.params.commentid} not found.`
+          )
+        );
+      }
+    } else {
+      next(
+        createHttpError(
+          404,
+          `Comment with id ${req.params.commentid} not found.`
+        )
+      );
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 postsRouter.post("/", async (req, res, next) => {
   try {
     const newPost = new postsModel(req.body);
     const { _id } = await newPost.save();
     res.status(201).send({ _id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+postsRouter.post("/:postid/comments", async (req, res, next) => {
+  try {
+    const comment = await postsModel.findById(req.params.postid, { _id: 0 });
+    if (comment) {
+      const commentToInsert = { ...req.body, addedOn: new Date() };
+
+      const postWithComment = await postsModel.findByIdAndUpdate(
+        req.params.postid,
+        { $push: { comments: commentToInsert } },
+        { new: true, runValidators: true }
+      );
+      if (postWithComment) {
+        res.send(postWithComment);
+      } else {
+        next(
+          createHttpError(404, `Post with id ${req.params.postid} not found`)
+        );
+      }
+    } else {
+      next(createHttpError(404, `Post with id ${req.params.postid} not found`));
+    }
   } catch (err) {
     next(err);
   }
@@ -58,6 +128,30 @@ postsRouter.put("/:postid", async (req, res, next) => {
   }
 });
 
+postsRouter.put("/:postid/comments/:commentid", async (req, res, next) => {
+  try {
+    const post = await postsModel.findById(req.params.postid);
+    if (post) {
+      const index = post.comments.findIndex(
+        (comment) => comment._id.toString() === req.params.commentid
+      );
+      if (index !== -1) {
+        post.comments[index] = {
+          ...post.comments[index].toObject(),
+          ...req.body,
+          updatedOn: new Date()
+        };
+        await post.save();
+        res.send(post);
+      }
+    } else {
+      next(createHttpError(404, `Comment not found`));
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
 postsRouter.delete("/:postid", async (req, res, next) => {
   try {
     const deletedPost = await postsModel.findByIdAndDelete(req.params.postid);
@@ -70,6 +164,23 @@ postsRouter.delete("/:postid", async (req, res, next) => {
           `Cannot delete post with id ${req.params.postid} as it does not exist`
         )
       );
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+postsRouter.delete("/:postid/comments/:commentid", async (req, res, next) => {
+  try {
+    const updatedPost = await postsModel.findByIdAndUpdate(
+      req.params.postid,
+      { $pull: { comments: { _id: req.params.commentid } } },
+      { new: true }
+    );
+    if (updatedPost) {
+      res.send(updatedPost);
+    } else {
+      next(createHttpError(404, `Post not found`));
     }
   } catch (err) {
     next(err);
