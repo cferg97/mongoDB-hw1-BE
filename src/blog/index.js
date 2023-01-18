@@ -1,13 +1,31 @@
 import express from "express";
 import createHttpError from "http-errors";
 import postsModel from "./model.js";
+import q2m from "query-to-mongo";
 
 const postsRouter = express.Router();
 
 postsRouter.get("/", async (req, res, next) => {
+  // try {
+  //   const posts = await postsModel.find();
+  //   res.send(posts);
+  // } catch (err) {
+  //   next(err);
+  // }
   try {
-    const posts = await postsModel.find();
-    res.send(posts);
+    const mongoQuery = q2m(req.query);
+    const total = await postsModel.countDocuments(mongoQuery.criteria);
+    const posts = await postsModel
+      .find(mongoQuery.criteria, mongoQuery.options.fields)
+      .limit(mongoQuery.options.limit)
+      .skip(mongoQuery.options.skip)
+      .sort(mongoQuery.options.sort);
+
+    res.send({
+      links: mongoQuery.links("http://localhost:3001/posts", total),
+      totalPages: Math.ceil(total / mongoQuery.options.limit),
+      posts,
+    });
   } catch (err) {
     next(err);
   }
@@ -139,7 +157,7 @@ postsRouter.put("/:postid/comments/:commentid", async (req, res, next) => {
         post.comments[index] = {
           ...post.comments[index].toObject(),
           ...req.body,
-          updatedOn: new Date()
+          updatedOn: new Date(),
         };
         await post.save();
         res.send(post);
