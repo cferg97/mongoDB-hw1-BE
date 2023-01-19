@@ -18,7 +18,7 @@ const postSchema = new Schema(
     content: { type: String, required: true },
     comments: [
       {
-        comment: String,
+        comment: { type: String, required: true },
         addedOn: Date,
         updatedOn: Date,
       },
