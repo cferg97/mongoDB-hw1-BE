@@ -1,6 +1,7 @@
 import express from "express";
 import createHttpError from "http-errors";
 import authorsModel from "./model.js";
+import q2m from "query-to-mongo";
 
 const authorsRouter = express.Router();
 
@@ -15,9 +16,24 @@ authorsRouter.post("/", async (req, res, next) => {
 });
 
 authorsRouter.get("/", async (req, res, next) => {
+  // try {
+  //   const authors = await authorsModel.find();
+  //   res.send(authors);
+  // } catch (err) {
+  //   next(err);
+  // }
+
   try {
-    const authors = await authorsModel.find();
-    res.send(authors);
+    const mongoQuery = q2m(req.query);
+    const { total, authors } = await authorsModel.findAuthorsWithPosts(
+      mongoQuery
+    );
+    res.send({
+      links: mongoQuery.links("http://localhost:3001/authors", total),
+      total,
+      totalPages: Math.ceil(total / mongoQuery.options.limit),
+      authors,
+    });
   } catch (err) {
     next(err);
   }
@@ -25,7 +41,10 @@ authorsRouter.get("/", async (req, res, next) => {
 
 authorsRouter.get("/:authorid", async (req, res, next) => {
   try {
-    const author = await authorsModel.findById(req.params.authorid);
+    const author = await authorsModel.findById(req.params.authorid).populate({
+      path: "posts",
+      select: "title",
+    });
     if (author) {
       res.send(author);
     } else {

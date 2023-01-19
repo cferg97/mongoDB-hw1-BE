@@ -14,15 +14,10 @@ postsRouter.get("/", async (req, res, next) => {
   // }
   try {
     const mongoQuery = q2m(req.query);
-    const total = await postsModel.countDocuments(mongoQuery.criteria);
-    const posts = await postsModel
-      .find(mongoQuery.criteria, mongoQuery.options.fields)
-      .limit(mongoQuery.options.limit)
-      .skip(mongoQuery.options.skip)
-      .sort(mongoQuery.options.sort);
-
+    const { total, posts } = await postsModel.findPostsWithAuthors(mongoQuery);
     res.send({
       links: mongoQuery.links("http://localhost:3001/posts", total),
+      total,
       totalPages: Math.ceil(total / mongoQuery.options.limit),
       posts,
     });

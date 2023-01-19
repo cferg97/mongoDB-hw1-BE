@@ -11,10 +11,7 @@ const postSchema = new Schema(
       value: { type: Number, required: true },
       unit: { type: String, required: true },
     },
-    author: {
-      name: { type: String, required: false },
-      avatar: { type: String, required: false },
-    },
+    author: [{ type: Schema.Types.ObjectId, ref: "blogposts.authors" }],
     content: { type: String, required: true },
     comments: [
       {
@@ -26,5 +23,20 @@ const postSchema = new Schema(
   },
   { timestamps: true }
 );
+
+postSchema.static("findPostsWithAuthors", async function (query) {
+  const total = await this.countDocuments(query.criteria);
+
+  const posts = await this.find(query.criteria, query.options.fields)
+    .skip(query.options.skip)
+    .limit(query.options.limit)
+    .sort(query.options.sort)
+    .populate({
+      path: "author",
+      select: "firstName lastName",
+    });
+
+  return { total, posts };
+});
 
 export default model("blogPosts.posts", postSchema);
