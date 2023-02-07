@@ -2,6 +2,7 @@ import express from "express";
 import createHttpError from "http-errors";
 import authorsModel from "./model.js";
 import q2m from "query-to-mongo";
+import { basicAuthMiddleware } from "../lib/auth/basicAuth.js";
 
 const authorsRouter = express.Router();
 
@@ -15,7 +16,7 @@ authorsRouter.post("/", async (req, res, next) => {
   }
 });
 
-authorsRouter.get("/", async (req, res, next) => {
+authorsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
   // try {
   //   const authors = await authorsModel.find();
   //   res.send(authors);
@@ -34,6 +35,14 @@ authorsRouter.get("/", async (req, res, next) => {
       totalPages: Math.ceil(total / mongoQuery.options.limit),
       authors,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+authorsRouter.get("/me", basicAuthMiddleware, async (req, res, next) => {
+  try {
+    res.send(req.author);
   } catch (err) {
     next(err);
   }
