@@ -70,7 +70,7 @@ authorsRouter.get("/:authorid", async (req, res, next) => {
   }
 });
 
-authorsRouter.put("/me", async (req, res, next) => {
+authorsRouter.put("/me", basicAuthMiddleware, async (req, res, next) => {
   try {
     const updatedAuthor = await authorsModel.findByIdAndUpdate(
       req.author._id,
@@ -80,28 +80,32 @@ authorsRouter.put("/me", async (req, res, next) => {
         runValidators: true,
       }
     );
-    res.send(updatedAuthor);
-  } catch (err) {
-    next(err);
-  }
-});
-
-authorsRouter.put("/:authorid", async (req, res, next) => {
-  try {
-    const updatedAuthor = await authorsModel.findByIdAndUpdate(
-      req.params.authorid,
-      req.body,
-      { new: true, runValidators: true }
-    );
     if (updatedAuthor) {
       res.send(updatedAuthor);
     } else {
-      createHttpError(404, `Author with id ${req.params.authorid} not found`);
+      next(createHttpError(401, "You're not authorised to do this."));
     }
   } catch (err) {
     next(err);
   }
 });
+
+// authorsRouter.put("/:authorid", async (req, res, next) => {
+//   try {
+//     const updatedAuthor = await authorsModel.findByIdAndUpdate(
+//       req.params.authorid,
+//       req.body,
+//       { new: true, runValidators: true }
+//     );
+//     if (updatedAuthor) {
+//       res.send(updatedAuthor);
+//     } else {
+//       createHttpError(404, `Author with id ${req.params.authorid} not found`);
+//     }
+//   } catch (err) {
+//     next(err);
+//   }
+// });
 
 // authorsRouter.delete("/:authorid", async (req, res, next) => {
 //   try {
