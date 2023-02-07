@@ -78,6 +78,18 @@ postsRouter.post("/", basicAuthMiddleware, async (req, res, next) => {
       ...req.body,
       author: req.author._id,
     });
+    if (newPost) {
+      await authorsModel.findByIdAndUpdate(
+        req.author._id,
+        {
+          $push: { posts: newPost._id },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+    }
     const { _id } = await newPost.save();
     res.status(201).send({ _id });
   } catch (err) {

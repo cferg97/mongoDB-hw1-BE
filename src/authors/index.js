@@ -42,7 +42,11 @@ authorsRouter.get("/", basicAuthMiddleware, async (req, res, next) => {
 
 authorsRouter.get("/me", basicAuthMiddleware, async (req, res, next) => {
   try {
-    res.send(req.author);
+    const me = await authorsModel.findById(req.author._id).populate({
+      path: "posts",
+      select: "title",
+    });
+    res.send(me);
   } catch (err) {
     next(err);
   }
