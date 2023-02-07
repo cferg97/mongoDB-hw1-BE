@@ -66,6 +66,22 @@ authorsRouter.get("/:authorid", async (req, res, next) => {
   }
 });
 
+authorsRouter.put("/me", async (req, res, next) => {
+  try {
+    const updatedAuthor = await authorsModel.findByIdAndUpdate(
+      req.author._id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    res.send(updatedAuthor);
+  } catch (err) {
+    next(err);
+  }
+});
+
 authorsRouter.put("/:authorid", async (req, res, next) => {
   try {
     const updatedAuthor = await authorsModel.findByIdAndUpdate(
@@ -83,16 +99,34 @@ authorsRouter.put("/:authorid", async (req, res, next) => {
   }
 });
 
-authorsRouter.delete("/:authorid", async (req, res, next) => {
+// authorsRouter.delete("/:authorid", async (req, res, next) => {
+//   try {
+//     const deletedAuthor = await authorsModel.findByIdAndDelete(
+//       req.params.authorid
+//     );
+//     if (deletedAuthor) {
+//       res.status(204).send();
+//     } else {
+//       next(
+//         createHttpError(404, `Author with id ${req.params.authorid} not found`)
+//       );
+//     }
+//   } catch (err) {
+//     next(err);
+//   }
+// });
+
+authorsRouter.delete("/me", basicAuthMiddleware, async (req, res, next) => {
   try {
-    const deletedAuthor = await authorsModel.findByIdAndDelete(
-      req.params.authorid
-    );
+    const deletedAuthor = await authorsModel.findByIdAndDelete(req.author._id);
     if (deletedAuthor) {
       res.status(204).send();
     } else {
       next(
-        createHttpError(404, `Author with id ${req.params.authorid} not found`)
+        createHttpError(
+          401,
+          "You are not authorised to do this action. Check your log in details and try again."
+        )
       );
     }
   } catch (err) {

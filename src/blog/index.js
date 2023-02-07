@@ -2,6 +2,8 @@ import express from "express";
 import createHttpError from "http-errors";
 import postsModel from "./model.js";
 import q2m from "query-to-mongo";
+import authorsModel from "../authors/model.js";
+import { basicAuthMiddleware } from "../lib/auth/basicAuth.js";
 
 const postsRouter = express.Router();
 
@@ -70,9 +72,12 @@ postsRouter.get("/:postid/comments/:commentid", async (req, res, next) => {
   }
 });
 
-postsRouter.post("/", async (req, res, next) => {
+postsRouter.post("/", basicAuthMiddleware, async (req, res, next) => {
   try {
-    const newPost = new postsModel(req.body);
+    const newPost = new postsModel({
+      ...req.body,
+      author: req.author._id,
+    });
     const { _id } = await newPost.save();
     res.status(201).send({ _id });
   } catch (err) {
