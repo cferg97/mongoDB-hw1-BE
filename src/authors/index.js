@@ -52,6 +52,27 @@ authorsRouter.get("/me", basicAuthMiddleware, async (req, res, next) => {
   }
 });
 
+authorsRouter.get(
+  "/me/stories",
+  basicAuthMiddleware,
+  async (req, res, next) => {
+    try {
+      const authorPosts = await authorsModel
+        .findById(req.author._id)
+        .select({ _id: 0, firstName: 0, lastName: 0 })
+        .populate({
+          path: "posts",
+          select: "title content comments",
+        });
+      if (authorPosts) {
+        res.send(authorPosts);
+      }
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 authorsRouter.get("/:authorid", async (req, res, next) => {
   try {
     const author = await authorsModel.findById(req.params.authorid).populate({
