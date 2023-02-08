@@ -182,10 +182,11 @@ postsRouter.put("/:postid/comments/:commentid", async (req, res, next) => {
   }
 });
 
-postsRouter.delete("/:postid", async (req, res, next) => {
+postsRouter.delete("/:postid", basicAuthMiddleware, async (req, res, next) => {
   try {
-    const deletedPost = await postsModel.findByIdAndDelete(req.params.postid);
-    if (deletedPost) {
+    const post = postsModel.findById(req.params.postid);
+    if (post.exists({ author: req.author._id })) {
+      await postsModel.findByIdAndDelete(req.params.postid);
       res.status(204).send();
     } else {
       next(

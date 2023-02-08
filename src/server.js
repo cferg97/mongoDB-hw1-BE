@@ -8,6 +8,8 @@ import {
   badRequestHandler,
   genericErrorHandler,
   notFoundHandler,
+  unauthorizedError,
+  forbiddenErrorHandler,
 } from "./errorHandler.js";
 
 const server = express();
@@ -19,6 +21,8 @@ server.use(express.json());
 server.use("/posts", postsRouter);
 server.use("/authors", authorsRouter);
 
+server.use(unauthorizedError);
+server.use(forbiddenErrorHandler);
 server.use(badRequestHandler);
 server.use(notFoundHandler);
 server.use(genericErrorHandler);
