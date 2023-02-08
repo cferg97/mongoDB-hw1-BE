@@ -22,7 +22,7 @@ authorsRouter.post("/register", async (req, res, next) => {
   try {
     const newAuthor = new authorsModel(req.body);
     const { email } = await newAuthor.save();
-    res.status(201).send('You regsistered with the email: ', email);
+    res.status(201).send({ email });
   } catch (err) {
     next(err);
   }
