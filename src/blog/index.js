@@ -4,6 +4,7 @@ import postsModel from "./model.js";
 import q2m from "query-to-mongo";
 import authorsModel from "../authors/model.js";
 import { basicAuthMiddleware } from "../lib/auth/basicAuth.js";
+import { JWTAuthMiddleware } from "../lib/auth/jwtAuth.js";
 
 const postsRouter = express.Router();
 
@@ -72,11 +73,11 @@ postsRouter.get("/:postid/comments/:commentid", async (req, res, next) => {
   }
 });
 
-postsRouter.post("/", basicAuthMiddleware, async (req, res, next) => {
+postsRouter.post("/", JWTAuthMiddleware, async (req, res, next) => {
   try {
     const newPost = new postsModel({
       ...req.body,
-      author: req.author._id,
+      author: req.author,
     });
     if (newPost) {
       await authorsModel.findByIdAndUpdate(

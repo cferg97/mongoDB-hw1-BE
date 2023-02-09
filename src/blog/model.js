@@ -8,7 +8,7 @@ const postSchema = new Schema(
     title: { type: String, required: true },
     cover: { type: String, required: false },
     readTime: {
-      value: { type: Number, required: true },
+      value: { type: String, required: true },
       unit: { type: String, required: true },
     },
     author: [{ type: Schema.Types.ObjectId, ref: "blogposts.authors" }],
