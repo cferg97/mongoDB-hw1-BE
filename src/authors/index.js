@@ -63,9 +63,7 @@ authorsRouter.get(
   passport.authenticate("google", { session: false }),
   async (req, res, next) => {
     console.log(req.author);
-    res.redirect(
-      "http://localhost:3000" + `?accessToken=${req.author.accessToken}`
-    );
+    res.redirect(`http://localhost:3000?accessToken=${req.user.accessToken}`);
   }
 );
 
