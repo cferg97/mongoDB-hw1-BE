@@ -11,12 +11,17 @@ import {
   unauthorizedError,
   forbiddenErrorHandler,
 } from "./errorHandler.js";
+import googleStrategy from "./lib/auth/googleAuth.js";
+import passport from "passport";
 
 const server = express();
 const port = process.env.PORT;
 
+passport.use("google", googleStrategy);
+
 server.use(cors());
 server.use(express.json());
+server.use(passport.initialize());
 
 server.use("/posts", postsRouter);
 server.use("/authors", authorsRouter);

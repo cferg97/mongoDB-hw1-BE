@@ -5,6 +5,7 @@ import q2m from "query-to-mongo";
 import { basicAuthMiddleware } from "../lib/auth/basicAuth.js";
 import { createAccessToken } from "../lib/auth/tools.js";
 import { JWTAuthMiddleware } from "../lib/auth/jwtAuth.js";
+import passport from "passport";
 
 const authorsRouter = express.Router();
 
@@ -51,6 +52,22 @@ authorsRouter.get("/", JWTAuthMiddleware, async (req, res, next) => {
     next(err);
   }
 });
+
+authorsRouter.get(
+  "/googleLogin",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authorsRouter.get(
+  "/googleRedirect",
+  passport.authenticate("google", { session: false }),
+  async (req, res, next) => {
+    console.log(req.author);
+    res.redirect(
+      "http://localhost:3000" + `?accessToken=${req.author.accessToken}`
+    );
+  }
+);
 
 authorsRouter.get("/me", JWTAuthMiddleware, async (req, res, next) => {
   try {
